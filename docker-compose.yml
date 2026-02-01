@@ -1,11 +1,30 @@
 version: '3.8'
+
 services:
+  db:
+    image: postgres:15
+    container_name: parser-db
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: parser_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
   app:
     build: .
-    container_name: parser_ai
-    restart: on-failure
+    container_name: parser-bot
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/parser_db
     volumes:
       - .:/app
       - ./sessions:/app/sessions
-    env_file: .env
-    command: python src/manager.py
+    restart: always
+
+volumes:
+  postgres_data:
